@@ -23,12 +23,28 @@ export default class Calculator extends React.Component {
     }
 
     clearMemory() {
-        this.setState({ ...initialState })
-        console.log('Clean');
+        this.setState({ ...initialState });
     }
 
-    setOperation(ops) {
-        console.log('Set operation: ' + ops);
+    setOperation(operation) {
+        if (this.state.current === 0) {
+            this.setState({ operation, current: 1, clearDisplay: true })
+        } else {
+            const equals = operation === '='
+            const currentOperation = this.state.operation
+            const values = [...this.state.values]
+
+            values[0] = eval(`${values[0]} ${currentOperation} ${values[1]}`);                
+            values[1] = 0;
+
+            this.setState({
+                displayValue: values[0],
+                operation: equals ? null : operation,
+                current: equals ? 0 : 1,
+                clearDisplay: !equals,
+                values: [...values]
+            });
+        }
     }
 
     addDigit(n) {
@@ -40,6 +56,14 @@ export default class Calculator extends React.Component {
         const currentValue = clearDisplay ? '' : this.state.displayValue;
         const displayValue = currentValue + n;
         this.setState({ displayValue, clearDisplay: false });
+
+        if (n !== '.') {
+            const i = this.state.current;
+            const newValue = parseFloat(displayValue);
+            const values = [...this.state.values];
+            values[i] = newValue;
+            this.setState({ values });
+        }
     }
 
     render() {
@@ -61,7 +85,7 @@ export default class Calculator extends React.Component {
                 <Button label="3" click={this.addDigit} />
                 <Button label="+" click={this.setOperation} operation />
                 <Button label="0" click={this.addDigit} double />
-                <Button label="." click={this.addDigit}/>
+                <Button label="." click={this.addDigit} />
                 <Button label="=" click={this.setOperation} operation />
             </div>
         );
